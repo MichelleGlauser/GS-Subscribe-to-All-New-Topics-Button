@@ -1,0 +1,89 @@
+<!-- Steps to a subscribe-to-all-topics button:
+1. make a product for all topics, get ID number and canonical name (in my case: 87939, gsfnmichelle_all_topics)
+2. make all new topics automatically be assigned to that product by ID number (through a jQuery click on that element)
+3. hide that product by ID number
+4. make a subscribe button on the front page
+5. give the subscribe button a call to the product page's follow button -->
+
+
+<!-- Header HTML: -->
+
+<div class="sb_pod" id="notifs"> 
+    <div class="clearfix" id="email_notifications"> 
+        <!-- Personalize this text: -->
+        <h3>Want to subscribe to every topic?</h3> 
+            <div class="inner_content"> 
+                <a href="#" class="button" id="email_subscription" style="margin-top:4px; ">Checking status . . .</a> 
+        </div> 
+    </div> 
+</div>
+
+
+
+
+<!-- Footer HTML: -->
+
+<script type="text/javascript" language="javascript">
+
+    // Only show subscribe button if the user is logged in and on the front page.
+    var isFrontPage = $j("div.community_topic_box").size() > 0;
+    var loggedOut = $j("ul.logged_in").attr("style") != undefined;
+
+    jQuery(document).ready(function () {
+
+        // Checks if the user is logged in and if it's the front page.
+        if (!loggedOut && isFrontPage) {
+
+            // Position subscribe button.
+            jQuery("#notifs").insertBefore("#community_info_sidebar");
+
+            // Personalize the address with the canonical name of your product:
+            jQuery.ajax("/[companyname]/products/[productcanonicalname]/", {
+                success: function (data) {
+                    var button = jQuery("a#email_subscription");
+                    var update = function (url, nextText, nextFunction) {
+                        button.unbind("click").text("Updating...");
+
+                        // Makes an ajax call to the product page that was created for all topics, and causes the same follow function to occur
+                        // Personalize the address with the canonical name of your product:
+                        jQuery.ajax("/[companyname]/products/[productcanonicalname]/" + url, {
+                            success: function () {
+                                button.text(nextText).click(nextFunction);
+                            }
+                        });
+                    };
+ 
+                    var subscribe = function () {
+                        update("follow", "Unsubscribe", unsubscribe);
+                    };
+                    var unsubscribe = function () {
+                        update("unfollow", "Subscribe", subscribe);
+                    };
+
+                    data = jQuery(data);
+                    var following = data.find("#follow_product_button").css("display").toLowerCase() == "none";
+                    button.text(following ? "Unsubscribe" : "Subscribe").click(following ? unsubscribe : subscribe);
+                }
+            });
+        } else {
+            jQuery("#notifs").hide();
+        }
+
+        // On new topic page, automatically assign every topic to the hidden "all topics" product, and hide that from view.
+        // Personalize the address and the ID numbers:
+        console.log(window.location.pathname);
+        if (window.location.pathname == "/[companyname]/topics/new") {
+           jQuery("#product_[number]").click();
+           jQuery("#product_grid li.Updates").hide();
+           jQuery("#-updates-").hide();
+        }
+
+        // Personalize the ID numbers here to hide them:
+        jQuery("#product_[number]").hide();
+        jQuery(".product_[number]").hide();
+        jQuery(".product_[number]:parent").parent().hide()
+        jQuery("ul.product_grid li.product_[number]").hide();
+        jQuery("#product_grid li #product_[number]").hide()
+        jQuery("#product_grid li #product_[number]").parent().hide();
+    });
+</script>
